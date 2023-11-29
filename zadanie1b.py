@@ -80,6 +80,7 @@ def test_RidgeRegressionInThreeDim():
     assert list(actual) == pytest.approx(list(expected), rel=1e-3)
     
 
+
 test_RidgeRegressionInOneDim()
 
 test_RidgeRegressionInThreeDim()
