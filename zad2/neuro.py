@@ -2,13 +2,9 @@
 
 import numpy as np
 from loader import load_data
+from functions import sigmoid, derivsig
 import pickle
 
-def sigmoid(x:float) -> float:
-    return(1/(1 + np.exp(-x)))
-
-def derivsig(x:float) -> float:
-    return(sigmoid(x) * (1 - sigmoid(x)))
 
 class Model:
     """
@@ -123,10 +119,10 @@ class Model:
         wektor = self.__fwd_prop(wektor)
         return(np.argmax(wektor))
 
-#najtrudniejsze na koniec
-#dane to idk co ma być na razie
     def fit(self, wektor, expected, epochs:int=1, learning_rate: float = 0.1):
-
+        """
+        Trzeba pamiętać że wektor to tak naprawdę wektor wektorów, tak samo expected.
+        """
         if len(wektor) != len(expected):
             raise Exception("Expected values have different dim than the input vector.")
 
@@ -175,7 +171,7 @@ def main():
     wektor = np.array([[1],[0]])
     oczekiwane = np.array([[1],[0]])
 
-    web1.fit(wektor,oczekiwane)
+    web1.fit(np.array([wektor]),np.array([oczekiwane]))
     print(web1)
 
 
