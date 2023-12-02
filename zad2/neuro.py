@@ -7,7 +7,10 @@ import pickle
 def sigmoid(x:float) -> float:
     return(1/(1 + np.exp(-x)))
 
-class Web:
+def derivsig(x:float) -> float:
+    return(sigmoid(x) * (1 - sigmoid(x)))
+
+class Model:
     """
     Simple dense web class.
 
@@ -71,7 +74,7 @@ class Web:
             #trzeba pamiętać że macierze mają +1 do inputu bo dochodzi bias
 
             #wartości początkowe są losowane z rozkładu standardowego i dzielone przez pierw z inputu
-            self.matryce = [(np.random.randn(self.input[1],self.input[0]))/np.sqrt(self.input[1])]
+            self.matryce = [(np.random.randn(self.input[1],self.input[0] + 1))/np.sqrt(self.input[1])]
 
             for i in range(len(self.layers)):
                 self.matryce.append(np.random.randn(self.layers[i][1],self.layers[i][0] + 1)/np.sqrt(self.layers[i][0]))
@@ -87,22 +90,32 @@ class Web:
         
         if len(wektor) != self.input[0]:
             raise Exception("Input vector dim does not match 1st layers dim.")
-            
-        if mem: 
-            memory = []
-            layer_memory = [None,None]
+           
+        wektor = np.vstack([np.array([1]),wektor])
+        
+        if mem: X = [wektor]
+        if mem: net = []
+
         for i in range(self.matrices - 1):
+            
             wektor = np.matmul(self.matryce[i],wektor)
-            if mem: layer_memory[0] = wektor
+            
+            if mem: net.append(wektor)
+            
             wektor = sigmoid(wektor)
-            if mem: 
-                layer_memory[1] = wektor
-                memory.append(layer_memory)
             wektor = np.vstack([np.array([1]),wektor])
             
+            if mem: X.append(wektor)
             
-        wektor = sigmoid(np.matmul(self.matryce[-1],wektor))
+        wektor = np.matmul(self.matryce[-1],wektor)   
         
+        if mem: 
+            net.append(wektor) 
+            memory = [X, net]
+
+        wektor = sigmoid(wektor)
+        #tego nie musimy zapamiętać bo to jest wynik
+
         if mem: return(wektor, memory)
         else: return(wektor)
 
@@ -112,25 +125,59 @@ class Web:
 
 #najtrudniejsze na koniec
 #dane to idk co ma być na razie
-    def fit(self, dane, epochs:int):
-        pass
+    def fit(self, wektor, expected, epochs:int=1, learning_rate: float = 0.1):
 
-#puszcza raz fwd z memory i zapisuje wyniki
-#potem na podstawie tego puszcza bwd i modyfikuje
+        if len(wektor) != len(expected):
+            raise Exception("Expected values have different dim than the input vector.")
 
-    def __bwd_prop(self,wektor,memory):
-        pass
+        for i in range(len(wektor)):
+            wynik = self.__fwd_prop(wektor[i],mem = True)
+            yhat = wynik[0]
+            memory = wynik[1]
+            diff = yhat - expected[i]
+            self.__bwd_prop(diff,memory, learning_rate)
+        #puszcza raz fwd z memory i zapisuje wyniki
+        #potem na podstawie tego puszcza bwd i modyfikuje
+        
+
+
+    def __bwd_prop(self,wektor,memory,learning_rate: float):
+        #wektor to różnica między oczekiwanym a przewidzianym
+        
+        values = wektor
+        new_weights = []
+
+        for i in range(self.matrices - 1, -1, -1):
+            derivatives = derivsig(memory[1][i])
+            delta_sig = values * derivatives
+            derW = np.matmul(delta_sig,np.transpose(memory[0][i]))
+            new = self.matryce[i] - (learning_rate * derW)
+            new_weights.append(new)
+            derX = np.matmul(np.transpose(self.matryce[i]),delta_sig)
+            dera = np.delete(derX, 0, 0)
+            values = dera
+    
+        new_weights.reverse()
+
+        for i in range(len(new_weights)):
+            self.matryce[i] = new_weights[i]
+
 
 def main():
-    web1 = Web(0)
-    web1.add_input(3, 2)
+    web1 = Model(0)
+    web1.add_input(2,2)
+    web1.add_layer(2)
     web1.add_layer(2)
     print(web1)
     web1.activate()
     print(web1)
     
-    wektor = np.array([[1],[1],[1]])
-    print(web1.predict(wektor))
+    wektor = np.array([[1],[0]])
+    oczekiwane = np.array([[1],[0]])
+
+    web1.fit(wektor,oczekiwane)
+    print(web1)
+
 
 if __name__ == "__main__":
     main()
