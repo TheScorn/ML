@@ -4,7 +4,7 @@ import numpy as np
 from loader import load_data
 from functions import sigmoid, derivsig
 import pickle
-
+import os
 
 class Model:
     """
@@ -28,10 +28,15 @@ class Model:
 
     def __str__(self):
         if self.active:
-            ret = f"Web:\n"
+            ret0 = f"Web plan:\n{self.input}"
+            for i in range(len(self.layers)):
+                ret0 = ret0 + f" -> {self.layers[i]}"
+
+
+            ret = f"\nWeb:\n"
             for i in range(len((self.matryce))):
                 ret = ret + f"{self.matryce[i]}\n -> \n"
-            return(ret)
+            return(ret0 + ret)
 
         else:
             ret = f"Web plan:\n{self.input}"
@@ -158,22 +163,36 @@ class Model:
         for i in range(len(new_weights)):
             self.matryce[i] = new_weights[i]
 
+    def save(self,filename):
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
+        os.chdir('models')
+        
+        
+        with open(f'./{filename}', 'wb') as file:
+            pickle.dump(self, file) 
+
+
+    @classmethod
+    def load(cls, filename):
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
+        os.chdir('models')
+
+        with open(f'./{filename}',"rb") as file:
+            ret = pickle.load(file)
+        return(ret)
 
 def main():
     web1 = Model(0)
-    web1.add_input(2,2)
+    web1.add_input(3,3)
+    web1.add_layer(3)
     web1.add_layer(2)
-    web1.add_layer(2)
-    print(web1)
     web1.activate()
     print(web1)
+    web1.save("web1")
+    del web1
+    web1ret = Model.load("web1")
+    print(web1ret)
     
-    wektor = np.array([[1],[0]])
-    oczekiwane = np.array([[1],[0]])
-
-    web1.fit(np.array([wektor]),np.array([oczekiwane]))
-    print(web1)
-
 
 if __name__ == "__main__":
     main()
