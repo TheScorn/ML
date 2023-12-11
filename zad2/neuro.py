@@ -120,9 +120,23 @@ class Model:
         if mem: return(wektor, memory)
         else: return(wektor)
 
+
+    def test(self, wektor_testow, wektor_odp):
+        sum_of_right = 0
+        length_wt = len(wektor_testow)
+        if length_wt != len(wektor_odp):
+            raise Exception("Expected values have different dim than the input vector")
+        for i in range(length_wt):
+            wynik = self.predict(wektor_testow[i])
+
+            if wynik == wektor_odp[i]:
+                sum_of_right += 1
+        return(sum_of_right/length_wt)
+
     def predict(self,wektor):
         wektor = self.__fwd_prop(wektor)
         return(np.argmax(wektor))
+
 
     def fit(self, wektor, expected, epochs:int=1, learning_rate: float = 0.1):
         """
