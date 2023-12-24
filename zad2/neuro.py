@@ -153,8 +153,26 @@ class Model:
             self.__bwd_prop(diff,memory, learning_rate)
         #puszcza raz fwd z memory i zapisuje wyniki
         #potem na podstawie tego puszcza bwd i modyfikuje
-        
 
+
+
+    def fit(self, wektor, expected, test, test_expected, epochs:int=1, learning_rate: float = 0.1):
+        """
+        Trzeba pamiętać że wektor to tak naprawdę wektor wektorów, tak samo expected.
+        """
+        if len(wektor) != len(expected):
+            raise Exception("Expected values have different dim than the input vector.")
+        for i in range(len(wektor)):
+            wynik = self.__fwd_prop(wektor[i],mem = True)
+            yhat = wynik[0]
+            memory = wynik[1]
+            diff = yhat - expected[i]
+            self.__bwd_prop(diff,memory, learning_rate)
+            #if (i % 1000) == 0:
+                #print(f"{self.test(test, test_expected)*100}%")
+        #puszcza raz fwd z memory i zapisuje wyniki
+        #potem na podstawie tego puszcza bwd i modyfikuje
+        
 
     def __bwd_prop(self,wektor,memory,learning_rate: float):
         #wektor to różnica między oczekiwanym a przewidzianym
