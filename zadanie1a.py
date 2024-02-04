@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from sklearn.linear_model import LinearRegression
 
+
 class LinearRegr:
     def fit(self, X, Y):
         # wejscie:

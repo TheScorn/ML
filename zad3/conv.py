@@ -5,6 +5,8 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor
+from networks import NeuralNetwork1, NeuralNetwork2, NeuralNetwork3
+
 
 train_data = datasets.FashionMNIST(
         root = "data",
@@ -32,34 +34,14 @@ device = (
         else "cpu"
 )
 
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.flatten = nn.Flatten()
-        self.CNNstack = nn.Sequential(
-        nn.Conv2d(in_channels=1, out_channels=5 ,kernel_size=(3,3),padding=1, padding_mode='zeros'),
 
-        nn.MaxPool2d(2,2),
-        nn.Conv2d(in_channels=5, out_channels = 10, kernel_size=(3,3), padding=1, padding_mode='zeros')
-        )
-
-        self.Linear = nn.Sequential(
-            nn.Linear(14*14*10,150),
-            nn.ReLU(),
-            nn.Linear(150,10)
-        )
-
-
-    def forward(self, x):
-        logits = self.CNNstack(x)
-        logits = logits.view(-1, 14*14*10)
-        logits = self.Linear(logits)
-
-        return logits
-
-
-model = NeuralNetwork().to(device)
+model = NeuralNetwork1().to(device)
+model2 = NeuralNetwork2().to(device)
+model3 = NeuralNetwork3().to(device)
+#model.load_state_dict(torch.load('model.p'))
 print(model)
+print(model2)
+print(model3)
 
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr = 1e-3)
@@ -74,6 +56,7 @@ def train(model, train_loader, loss_fn, device):
         outputs = model(inputs)
         loss = loss_fn(outputs, labels)
         loss.backward()
+        optimizer.step()
         train_loss += loss.item()
     return train_loss / len(train_loader)
 
@@ -96,11 +79,11 @@ def validation(model, test_loader, loss_fn, device):
         accuracy = 100 * correct / total
         return val_loss / len(test_loader), accuracy
 
+
 best_val_loss = float('inf')
 for epoch in range(10):
     train_loss = train(model, train_loader, loss_fn, device)
     val_loss, accuracy = validation(model, test_loader, loss_fn, device)
-
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         patience = 0
@@ -116,7 +99,6 @@ for epoch in range(10):
         break
 
     print(f"Epoch: {epoch:02} - Train loss: {train_loss:02.3f} - Validation loss: {val_loss:02.3f} - Accuracy: {accuracy:02.3f}")
-
 
 
 
